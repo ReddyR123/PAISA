@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Paisa — a plan built only for you</title>
+<style>
+  :root{
+    --bg:#faf8f5; --card:#ffffff; --ink:#1a1a2e; --muted:#6b6b7b; --line:#ece8e1;
+    --accent:#3a3a80; --accent-soft:#ecebf7; --green:#2f7a5b; --green-soft:#e7f3ed;
+    --amber:#9a6a18; --amber-soft:#fbf3e2; --blue-soft:#e8f0fb;
+    --shadow:0 6px 24px rgba(26,26,46,.07); --radius:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .app{max-width:430px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;position:relative;background:var(--bg);overflow:hidden}
+  .screen{flex:1;display:none;flex-direction:column;min-height:0;animation:fade .35s ease}
+  .screen.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes slidein{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+  .pad{padding:28px 22px}
+
+  .brand{font-weight:800;letter-spacing:-.5px;font-size:20px;color:var(--accent)}
+  .brand .dot{color:var(--green)}
+  .btn{appearance:none;border:none;cursor:pointer;background:var(--accent);color:#fff;font-size:17px;font-weight:600;font-family:inherit;padding:16px 20px;border-radius:14px;width:100%;transition:transform .1s ease,opacity .2s}
+  .btn:active{transform:scale(.98)}
+  .btn.secondary{background:var(--accent-soft);color:var(--accent)}
+  .fineprint{font-size:12px;color:var(--muted);text-align:center;margin-top:14px}
+  .fineprint a{color:var(--accent);cursor:pointer;text-decoration:none}
+
+  /* landing */
+  #landing{justify-content:space-between}
+  .hero{margin:auto 0}
+  .hero h1{font-size:34px;line-height:1.18;letter-spacing:-1px;font-weight:800;margin:0 0 16px}
+  .hero p{font-size:17px;color:var(--muted);margin:0 0 8px;max-width:34ch}
+  .chip-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13.5px;color:var(--muted);box-shadow:var(--shadow);margin-top:24px}
+  .chip-card b{color:var(--ink)}
+
+  /* ===== ONBOARDING (card stepper) ===== */
+  #onboarding{padding:26px 22px 24px}
+  .progress-wrap{display:flex;align-items:center;gap:12px;margin-bottom:30px}
+  .progress-track{flex:1;height:6px;background:var(--line);border-radius:99px;overflow:hidden}
+  .progress-fill{height:100%;background:var(--accent);border-radius:99px;width:8%;transition:width .4s ease}
+  .progress-label{font-size:12.5px;color:var(--muted);font-weight:600;white-space:nowrap}
+  .q-body{flex:1;display:flex;flex-direction:column;min-height:0;animation:slidein .3s ease}
+  .q-kicker{font-size:13px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+  .q-label{font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1.25;margin:0 0 8px}
+  .q-help{font-size:14.5px;color:var(--muted);margin:0 0 22px}
+  .q-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-right:-4px;padding-right:4px}
+  .field{position:relative;margin-bottom:6px}
+  .field .rupee{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--muted);font-weight:600;pointer-events:none}
+  input.inp,textarea.inp{width:100%;font-family:inherit;font-size:19px;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:16px 18px;outline:none;transition:border-color .2s,box-shadow .2s}
+  input.inp.has-rupee{padding-left:40px}
+  textarea.inp{min-height:92px;resize:none;line-height:1.45}
+  .inp:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+  .optional-note{font-size:12.5px;color:var(--muted);margin-top:8px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+  .chip-opt{border:1.5px solid var(--line);background:var(--card);color:#464654;border-radius:999px;padding:9px 14px;font-size:13.5px;font-weight:500;cursor:pointer;transition:.14s;font-family:inherit}
+  .chip-opt:active{transform:scale(.95)}
+  .chip-opt.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .sub-block{margin-bottom:20px}
+  .sub-label{font-size:12.5px;font-weight:700;color:var(--accent);margin:0 0 9px;text-transform:uppercase;letter-spacing:.4px}
+  .sub-block .inp{font-size:17px;padding:13px 16px}
+  .q-nav{display:flex;align-items:center;gap:10px;margin-top:14px}
+  .q-nav .btn{flex:1}
+  .back-btn{width:auto;flex:0 0 auto;background:transparent;color:var(--muted);font-weight:500;padding:16px 8px;border:none;cursor:pointer;font-family:inherit;font-size:15px}
+
+  /* loading */
+  #loading{align-items:center;justify-content:center;text-align:center}
+  .pulse{width:64px;height:64px;border-radius:50%;background:var(--accent-soft);position:relative;margin-bottom:26px;display:grid;place-items:center}
+  .pulse::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--accent);animation:ring 1.4s ease-out infinite}
+  @keyframes ring{0%{transform:scale(.8);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+  .pulse span{font-size:26px}
+  #loading .lstep{font-size:18px;font-weight:600;min-height:26px;transition:opacity .3s}
+  #loading .lsub{font-size:14px;color:var(--muted);margin-top:6px}
+
+  /* ===== PLAN ===== */
+  #plan{overflow-y:auto}
+  .plan-top{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 6px;position:sticky;top:0;background:var(--bg);z-index:3}
+  .gear{background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;font-weight:600}
+  .plan-body{padding:6px 18px 30px}
+  .see-hero{position:relative;background:linear-gradient(140deg,#fff 0%,#f3f1fb 100%);border:1px solid #e3e0f2;border-radius:var(--radius);padding:20px 18px;box-shadow:0 10px 30px rgba(58,58,128,.10);margin:6px 0 22px;animation:heroIn .75s cubic-bezier(.2,.75,.2,1) both}
+  .see-hero .tag{font-size:11.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:9px}
+  .see-hero p{margin:0;font-size:16.5px;line-height:1.52;color:#28283a}
+  @keyframes heroIn{0%{opacity:0;transform:translateY(16px) scale(.985)}100%{opacity:1;transform:none}}
+  .sec{margin:0 0 26px}
+  .sec-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);margin:0 0 4px}
+  .sec-sub{font-size:13px;color:var(--muted);margin:0 0 14px}
+  .map-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:14px}
+  .map-bar{height:22px;border-radius:6px;min-width:3px}
+  .map-name{flex:0 0 96px;color:#42424f}
+  .map-amt{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
+  .map-free .map-name,.map-free .map-amt{color:var(--green)}
+  .bucket{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 16px;margin-bottom:11px;box-shadow:var(--shadow);display:flex;gap:13px;align-items:flex-start;position:relative;overflow:hidden}
+  .bucket .rail{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
+  .bucket .pnum{flex:0 0 28px;height:28px;border-radius:9px;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:13px;display:grid;place-items:center;margin-top:2px}
+  .bucket .bmain{flex:1;min-width:0}
+  .bucket .bname{font-size:15.5px;font-weight:700;margin:0 0 3px}
+  .bucket .bwhy{font-size:13px;color:var(--muted);line-height:1.4}
+  .bucket .bamt{font-size:18px;font-weight:800;white-space:nowrap}
+  .bucket .bamt small{font-size:10px;color:var(--muted);font-weight:600;display:block;text-align:right}
+  .pcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .pcard .pt{font-size:14.5px;font-weight:700;margin:0 0 3px;display:flex;align-items:center;gap:8px}
+  .pcard .pd{font-size:13px;color:var(--muted);line-height:1.45}
+  .badge{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.3px}
+  .badge.need{background:var(--amber-soft);color:var(--amber)}
+  .badge.have{background:var(--green-soft);color:var(--green)}
+  .opt-group{margin-bottom:16px}
+  .opt-h{font-size:14px;font-weight:700;margin:0 0 2px}
+  .opt-h small{font-weight:500;color:var(--muted)}
+  .opt{display:flex;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line)}
+  .opt:last-child{border-bottom:none}
+  .opt .on{font-size:14px;font-weight:600;color:#2f2f45;flex:0 0 auto}
+  .opt .od{font-size:12.5px;color:var(--muted)}
+  .menu-note{font-size:12px;color:var(--muted);font-style:italic;background:var(--blue-soft);border-radius:10px;padding:9px 12px;margin-bottom:14px}
+  .tick{margin:6px 0 0;padding-left:18px}
+  .tick li{font-size:13.5px;color:#42424f;margin-bottom:7px;line-height:1.4}
+  .play{margin:6px 0 0;padding-left:20px;counter-reset:p}
+  .play li{font-size:14px;color:#34343f;margin-bottom:10px;line-height:1.45}
+  .opt2{padding:11px 0;border-bottom:1px solid var(--line)}
+  .opt2:last-child{border-bottom:none}
+  .opt2-top{display:flex;gap:10px;align-items:baseline;justify-content:space-between}
+  .opt2-meta{font-size:12px;color:var(--muted);margin-top:4px}
+  .opt2-meta b{color:#5a5a6a;font-weight:600}
+  .bcalc{font-size:11.5px;color:var(--accent);margin-top:6px;background:var(--accent-soft);border-radius:8px;padding:6px 9px;line-height:1.4;font-variant-numeric:tabular-nums}
+  .map-formula{font-size:12px;color:#56566a;margin-top:12px;background:var(--blue-soft);border-radius:9px;padding:9px 11px;line-height:1.45}
+  .map-formula b{color:var(--green)}
+  .scn-note{font-size:12.5px;font-weight:400;margin-top:6px;opacity:.96;line-height:1.45}
+  .split{display:flex;height:28px;border-radius:8px;overflow:hidden;margin:6px 0 10px;background:var(--line)}
+  .split span{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;min-width:0}
+  .split .n{background:#7c7ab0}.split .w{background:#caa46a}.split .s{background:#2f7a5b}
+  .split-key{display:flex;gap:16px;font-size:12.5px;color:var(--muted);margin-bottom:12px;flex-wrap:wrap}
+  .split-key i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .flag{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;color:#42424f;line-height:1.4}
+  .flag:last-child{border-bottom:none}
+  .flag .fdot{flex:0 0 auto;width:11px;height:11px;border-radius:50%;margin-top:4px}
+  .flag .fdot.ok{background:var(--green)}
+  .flag .fdot.bad{background:#c0392b}
+  .flag b{color:var(--ink);font-weight:600}
+  .scn-banner{background:var(--accent);color:#fff;border-radius:14px;padding:13px 15px;margin:6px 0 18px;font-size:14px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;animation:heroIn .5s both}
+  .scn-banner button{background:rgba(255,255,255,.22);color:#fff;border:none;border-radius:9px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .scn-btns{display:flex;flex-wrap:wrap;gap:8px}
+  .scn-btns button{flex:1;min-width:calc(50% - 4px);border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:13px 10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink);transition:.14s}
+  .scn-btns button:active{transform:scale(.97);background:var(--accent-soft)}
+  .callout{border-radius:16px;padding:15px;margin-bottom:11px}
+  .callout .ct{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  .callout p{margin:0;font-size:15px;line-height:1.45}
+  .callout.first{background:var(--green-soft);border:1px solid #cfe7da}.callout.first .ct{color:var(--green)}
+  .callout.notyet{background:var(--amber-soft);border:1px solid #f0e2c4}.callout.notyet .ct{color:var(--amber)}
+  .callout.grow{background:var(--blue-soft);border:1px solid #d4e3f6}.callout.grow .ct{color:#2b5b9a}
+  .totals{display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted);padding:4px 2px 0;margin-bottom:8px}
+  .totals b{color:var(--ink)}
+  .disclaimer{font-size:12px;color:var(--muted);text-align:center;margin:14px 0 4px;line-height:1.5}
+  .diag{margin:14px 0;border:1px dashed var(--line);border-radius:14px;overflow:hidden}
+  .diag summary{cursor:pointer;list-style:none;padding:12px 14px;font-size:13px;font-weight:600;color:var(--accent);background:var(--accent-soft)}
+  .diag summary::-webkit-details-marker{display:none}
+  .diag .db{padding:12px 14px;font-size:13px;color:#42424f}.diag .db div{margin-bottom:8px}.diag .db b{color:var(--ink)}
+  .plan-actions{display:flex;gap:10px;margin-top:16px}.plan-actions .btn{flex:1}
+
+  /* settings sheet */
+  .sheet-mask{position:fixed;inset:0;background:rgba(20,20,35,.42);display:none;z-index:50;align-items:flex-end;justify-content:center}
+  .sheet-mask.show{display:flex;animation:fade .2s ease}
+  .sheet{background:var(--card);width:100%;max-width:430px;border-radius:22px 22px 0 0;padding:22px 22px 30px;animation:slideup .28s ease}
+  @keyframes slideup{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+  .sheet h3{margin:0 0 4px;font-size:19px}.sheet .sub{font-size:13.5px;color:var(--muted);margin:0 0 18px}
+  .mode-row{display:flex;gap:8px;margin-bottom:18px}
+  .mode-opt{flex:1;border:1.5px solid var(--line);border-radius:13px;padding:12px;text-align:center;cursor:pointer;font-size:13.5px;font-weight:600;transition:.15s}
+  .mode-opt.sel{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .mode-opt small{display:block;font-weight:500;color:var(--muted);font-size:11px;margin-top:3px}.mode-opt.sel small{color:var(--accent)}
+  .keybox{display:none}.keybox.show{display:block;animation:fade .2s}
+  label.fl{font-size:13px;font-weight:600;display:block;margin-bottom:6px}
+  .keybox input{width:100%;font-family:inherit;font-size:15px;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;outline:none}
+  .warn{font-size:11.5px;color:var(--amber);background:var(--amber-soft);border-radius:10px;padding:9px 11px;margin-top:10px;line-height:1.4}
+  .sheet .btn{margin-top:18px}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;background:var(--ink);color:#fff;font-size:13.5px;padding:11px 18px;border-radius:12px;z-index:80;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
+  .toast.show{opacity:1}
+  /* feedback */
+  .fb-cta{background:linear-gradient(140deg,#fff,#f3f1fb);border:1px solid #e3e0f2;border-radius:16px;padding:16px;margin:18px 0 4px;text-align:center}
+  .fb-cta div{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:10px}
+  .stars{display:flex;gap:8px;margin:2px 0 16px}
+  .star{cursor:pointer;font-size:30px;color:#d8d4cb;transition:.12s;line-height:1}
+  .star.on{color:#f0a92a;transform:scale(1.05)}
+  .seg{display:flex;gap:8px;margin:2px 0 16px}
+  .seg button{flex:1;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;color:#464654;transition:.14s}
+  .seg button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .fbinp{width:100%;font-family:inherit;font-size:15px;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;outline:none;margin-bottom:6px}
+  textarea.fbinp{min-height:78px;resize:none;line-height:1.4}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- LANDING -->
+  <section class="screen active pad" id="landing">
+    <div class="brand">paisa<span class="dot">.</span></div>
+    <div class="hero">
+      <h1>Tell Paisa your situation.<br>Get a plan built only for you.</h1>
+      <p>Not a SIP calculator. A few questions that read your whole financial life — income, who depends on you, what you fear — and hand you the complete picture.</p>
+      <div class="chip-card"><b>Same ₹68,000 salary.</b> A coder in Pune living alone and a sole earner in Lucknow supporting parents get two completely different pictures. As they should.</div>
+    </div>
+    <div>
+      <div id="welcomeBack" style="display:none;margin-bottom:14px">
+        <div class="chip-card" style="background:var(--green-soft);border-color:#cfe7da">
+          <b>Welcome back 👋</b> Ready for your monthly check-in? Update what's changed and see your progress.
+          <button class="btn" style="margin-top:12px" onclick="startCheckin()">Monthly check-in →</button>
+        </div>
+      </div>
+      <button class="btn" onclick="start()">Start →</button>
+      <div class="fineprint">~2 minutes · no login · <a onclick="openSheet()">Settings</a></div>
+    </div>
+  </section>
+
+  <!-- ONBOARDING -->
+  <section class="screen" id="onboarding">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="pfill"></div></div>
+      <div class="progress-label" id="plabel">1 of 15</div>
+    </div>
+    <div class="q-body" id="qbody"></div>
+  </section>
+
+  <!-- CHECK-IN -->
+  <section class="screen pad" id="checkin">
+    <div class="brand">paisa<span class="dot">.</span></div>
+    <h2 class="q-label" style="margin-top:22px">Your monthly check-in</h2>
+    <p class="q-help">Just update what changed since last time — Paisa keeps everything else and shows your progress.</p>
+    <div class="q-scroll" id="checkinBody"></div>
+    <div class="q-nav"><button class="back-btn" onclick="show('landing')">← Back</button><button class="btn" onclick="runCheckin()">See my progress →</button></div>
+  </section>
+
+  <!-- LOADING -->
+  <section class="screen pad" id="loading">
+    <div class="pulse"><span>₹</span></div>
+    <div class="lstep" id="lstep">Reading your whole situation…</div>
+    <div class="lsub" id="lsub">The part no calculator bothers with.</div>
+  </section>
+
+  <!-- PLAN -->
+  <section class="screen" id="plan">
+    <div class="plan-top"><div class="brand">paisa<span class="dot">.</span></div><button class="gear" onclick="openSheet()">⚙ Settings</button></div>
+    <div class="plan-body" id="planContent"></div>
+  </section>
+</div>
+
+<!-- SETTINGS -->
+<div class="sheet-mask" id="sheetMask" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet">
+    <h3>How should Paisa think?</h3>
+    <p class="sub">Paisa runs on real AI by default — no setup needed. Switch to offline demo mode anytime.</p>
+    <div class="mode-row">
+      <div class="mode-opt sel" id="optAI" onclick="setMode('auto')">Paisa AI<small>real LLM · default</small></div>
+      <div class="mode-opt" id="optDemo" onclick="setMode('demo')">Demo<small>offline rules</small></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:16px">
+      <input type="checkbox" id="showDiag" />
+      <label for="showDiag" style="font-size:13.5px;color:var(--muted)">Show Paisa's private diagnosis (for the swap test)</label>
+    </div>
+    <button class="btn" onclick="closeSheet()">Done</button>
+  </div>
+</div>
+
+<!-- FEEDBACK -->
+<div class="sheet-mask" id="fbMask" onclick="if(event.target===this)closeFeedback()">
+  <div class="sheet">
+    <h3>How was your plan?</h3>
+    <p class="sub">20 seconds — anonymous unless you add your name. It genuinely helps.</p>
+    <label class="fl">Did it feel written for you?</label>
+    <div class="stars" id="stars">
+      <span class="star" onclick="setStar(1)">★</span><span class="star" onclick="setStar(2)">★</span><span class="star" onclick="setStar(3)">★</span><span class="star" onclick="setStar(4)">★</span><span class="star" onclick="setStar(5)">★</span>
+    </div>
+    <label class="fl">What stuck with you? (or what felt off)</label>
+    <textarea id="fbText" class="fbinp" placeholder="e.g. It actually understood that I'm the only earner…"></textarea>
+    <label class="fl">Would you use Paisa for real?</label>
+    <div class="seg"><button type="button" onclick="setUse(this,'Yes')">Yes</button><button type="button" onclick="setUse(this,'Maybe')">Maybe</button><button type="button" onclick="setUse(this,'No')">No</button></div>
+    <label class="fl">Your name & what you do (optional)</label>
+    <input id="fbWho" class="fbinp" placeholder="e.g. Priya, 26, engineer in Pune">
+    <button class="btn" onclick="submitFeedback()">Send feedback</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   PAISA — card-stepper prototype, complete-picture output
+   ============================================================ */
+const $=id=>document.getElementById(id);
+function inr(n){if(n==null||isNaN(n))return"₹0";n=Math.round(n);let s=n.toString(),l=s.slice(-3),r=s.slice(0,-3);if(r)l=','+l;r=r.replace(/\B(?=(\d{2})+(?!\d))/g,',');return"₹"+r+l;}
+function num(v){if(v==null||v==='')return 0;const n=parseFloat((''+v).replace(/[^0-9.]/g,''));return isNaN(n)?0:n;}
+function esc(s){return(''+s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s;}
+function loadHist(){try{return JSON.parse(localStorage.getItem('paisa_hist')||'null');}catch(e){return null;}}
+function saveHist(s){try{localStorage.setItem('paisa_hist',JSON.stringify(s));}catch(e){}}
+function loadProfile(){try{return JSON.parse(localStorage.getItem('paisa_profile')||'null');}catch(e){return null;}}
+function saveProfile(p){try{localStorage.setItem('paisa_profile',JSON.stringify(p));}catch(e){}}
+function track(name,data){try{if(typeof window!=='undefined'&&window.va)window.va('event',{name:name,data:data||{}});}catch(e){}}
+
+/* ---------- questions (one card per screen) ---------- */
+const QUESTIONS=[
+ {id:"name",kicker:"Hello",label:"What should Paisa call you?",help:"Just a first name is perfect.",type:"text",required:false,ph:"e.g. Aarav"},
+ {id:"city",kicker:"Where you are",label:"Which city do you live in?",help:"Cost of living changes everything. Pune ≠ Lucknow even at the same salary.",type:"text",required:true,ph:"e.g. Pune"},
+ {id:"monthly_income",kicker:"The basics",label:"What's your monthly take-home?",help:"After tax — what actually lands in your account.",type:"rupee",required:true,ph:"68,000"},
+ {id:"future_salary",kicker:"Looking ahead",label:"Where do you see your income in 2–3 years?",help:"A rough sense is fine — it decides whether the plan should scale up over time.",type:"text",required:false,chips:["About the same","A bit higher","Significantly higher","No idea yet"],ph:"tap one or tell Paisa"},
+ {id:"partner_income",kicker:"Household",label:"Sharing finances with a partner?",help:"Add their monthly take-home, or skip if you're planning solo. If you add it, Paisa plans for your household together.",type:"rupee",required:false,ph:"e.g. 55,000 (skip if solo)"},
+ {id:"rent",kicker:"Fixed costs",label:"How much rent / housing do you pay monthly?",help:"Your biggest fixed cost (household total if you share). Put 0 if you live with family.",type:"rupee",required:true,ph:"18,000"},
+ {id:"dependents",kicker:"Who's with you",label:"Does anyone depend on you financially?",help:"Tap who, or write your own. This is the question other apps skip.",type:"textarea",required:true,chips:["Just me","My parents","Younger sibling","Partner / spouse","Kids","I'm the only earner"],ph:"e.g. My parents and younger sister — I'm the only earner"},
+ {id:"money_sent_home",kicker:"Who's with you",label:"Do you send money home each month?",help:"How much? Put 0 if you don't. Paisa treats this as sacred, not spare.",type:"rupee",required:false,ph:"12,000"},
+ {id:"loans",kicker:"What you owe",label:"Any EMIs or loans running?",help:"What and how much per month? High-interest debt gets killed before any investing.",type:"textarea",required:false,chips:["No loans","Home loan","Car loan","Personal loan","Credit card","Education loan"],ph:"e.g. Car loan ₹9,000/mo; credit card outstanding"},
+ {id:"savings_now",kicker:"What you have",label:"Roughly how much do you have saved right now?",help:"Across bank, FDs, anything liquid. A rough number is fine.",type:"rupee",required:false,ph:"40,000"},
+ {id:"savings_where",kicker:"What you have",label:"And where is that money sitting?",help:"Tap all that apply — this is where most people quietly lose value to inflation without noticing.",type:"textarea",required:false,chips:["Savings account","Salary account","Fixed deposit (FD)","Mutual funds","Stocks","PPF / EPF","Gold","Cash at home"],ph:"e.g. mostly in my savings account"},
+ {id:"existing_investments",kicker:"What you have",label:"Are you investing in anything already?",help:"Tap all that apply. Paisa builds on what you've got instead of starting from zero.",type:"textarea",required:false,chips:["Nothing yet","FD / RD","Mutual funds / SIP","Stocks","PPF / EPF","Gold","Crypto","Real estate"],ph:"tap or tell Paisa"},
+ {id:"existing_insurance",kicker:"What you have",label:"What insurance do you already have?",help:"Tap all that apply. This tells Paisa where the protection gaps are.",type:"textarea",required:false,chips:["None","Term life","Health insurance","Employer health only","LIC / endowment"],exclusive:[["Health insurance","Employer health only"]],ph:"tap or tell Paisa"},
+ {id:"spending",kicker:"How you spend",label:"A rough month of spending",help:"Ballpark numbers are fine — this is what turns Paisa from a guesser into a real calculator. Skip any that don't apply.",type:"composite",required:false,subs:[
+   {id:"spend_essentials",sublabel:"Food, groceries & bills",type:"rupee",ph:"12,000"},
+   {id:"spend_transport",sublabel:"Transport / fuel",type:"rupee",ph:"3,000"},
+   {id:"spend_fun",sublabel:"Eating out, fun & subscriptions",type:"rupee",ph:"8,000"},
+   {id:"spend_shopping",sublabel:"Shopping & other wants",type:"rupee",ph:"4,000"}
+ ]},
+ {id:"lifestyle",kicker:"What you protect",label:"What's the one thing you'll never give up?",help:"A good plan protects what you love instead of killing it. Tap it or name your own.",type:"textarea",required:false,chips:["Travel","Eating out","Gym / fitness","My bike / car","Gadgets","Helping family"],ph:"e.g. one trip a year and my weekend dinners"},
+ {id:"horizons",kicker:"Your horizons",label:"What are you working toward?",help:"Tap what fits or write your own — across three timeframes. This is what Paisa builds the plan around.",type:"composite",required:true,subs:[
+   {id:"goal",sublabel:"Right now · next 1–2 years",required:true,chips:["Clear a loan","A big trip","Wedding","Emergency cushion","New phone / laptop","Buy a vehicle"],ph:"e.g. Europe trip in 2027"},
+   {id:"goal_5yr",sublabel:"In 5 years",chips:["Buy a house","Get married","Have kids","Switch careers","₹25L invested","Start a business"],ph:"e.g. own a flat"},
+   {id:"goal_10yr",sublabel:"In 10 years",chips:["Financial freedom","Kids' education","Own business","Retire early","Dream home","Property portfolio"],ph:"e.g. financially independent by 40"}
+ ]},
+ {id:"fear",kicker:"What you fear",label:"What about money keeps you up at night?",help:"Be honest — this shapes how cautious your plan is. Tap one or tell Paisa.",type:"textarea",required:false,chips:["Losing my job","A medical emergency","Never owning a home","Not saving enough","Letting family down","Falling behind friends"],ph:"e.g. If I lose my job, everyone is stuck"},
+];
+
+/* ---------- shared classifiers ---------- */
+function hasDebt(p){const t=(p.loans||'').toLowerCase();return /loan|emi|credit|card|borrow|debt/.test(t)&&!/^(no |none|nahi|nil|no loan)/.test(t);}
+function hasHighInterest(p){return /credit card|personal loan|credit|cc /.test((p.loans||'').toLowerCase());}
+function emiOf(p){const t=(p.loans||'').toLowerCase();const m=t.match(/[\d,]{3,}/g);if(!m)return 0;const inc=num(p.monthly_income);return m.map(x=>num(x)).reduce((a,b)=>a+(b<inc?b:0),0);}
+function isSole(p){const d=(p.dependents||'').toLowerCase();const noDep=/^(no|none|nobody|just me|only me|myself|nahi|na)\b/.test(d)||d==='';return !noDep&&(num(p.money_sent_home)>0||/sole|only earner|only one|everyone|entire family|whole family|alone/.test(d)||/lose my job|everyone|stuck|family/.test((p.fear||'').toLowerCase()));}
+function hasDeps(p){const d=(p.dependents||'').toLowerCase();return !(/^(no|none|nobody|just me|only me|myself|nahi|na)\b/.test(d)||d==='');}
+function discretionary(p){const struct=num(p.spend_fun)+num(p.spend_shopping);if(struct>0)return struct;const m=(p.spending_habits||'').match(/[\d,]{3,}/g);if(!m)return 0;const inc=num(p.monthly_income);return m.map(x=>num(x)).filter(x=>x<inc).reduce((a,b)=>a+b,0);}
+function realSpend(p){return num(p.spend_essentials)+num(p.spend_transport)+num(p.spend_fun)+num(p.spend_shopping);}
+
+/* ---------- state ---------- */
+let profile={},qi=0,mode="auto",showDiag=false;
+
+/* ---------- flow ---------- */
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');}
+function start(){qi=0;profile={};track('onboarding_started');show('onboarding');renderQ();}
+function startCheckin(){
+  const saved=loadProfile();if(!saved){start();return;}
+  profile=Object.assign({},saved);
+  const fields=[['savings_now','Savings now'],['spend_essentials','Food, groceries & bills'],['spend_transport','Transport / fuel'],['spend_fun','Eating out, fun & subscriptions'],['spend_shopping','Shopping & wants']];
+  $('checkinBody').innerHTML=fields.map(f=>`<div class="sub-block"><div class="sub-label">${f[1]}</div><div class="field"><span class="rupee">₹</span><input class="inp has-rupee" id="ci_${f[0]}" inputmode="numeric" value="${profile[f[0]]?Number(num(profile[f[0]])).toLocaleString('en-IN'):''}" oninput="liveRupee(this)"></div></div>`).join('');
+  show('checkin');
+}
+function runCheckin(){
+  ['savings_now','spend_essentials','spend_transport','spend_fun','spend_shopping'].forEach(id=>{const el=$('ci_'+id);if(el)profile[id]=num(el.value);});
+  track('checkin_done');generate();
+}
+function chipRow(inputId,chips,cur){
+  if(!chips||!chips.length)return '';
+  const have=(cur||'').toLowerCase().split(',').map(s=>s.trim());
+  return `<div class="chips">`+chips.map(c=>`<button type="button" class="chip-opt${have.includes(c.toLowerCase())?' on':''}" onclick="toggleChip(this,'${inputId}','${c.replace(/'/g,"\\'")}')">${c}</button>`).join('')+`</div>`;
+}
+function fieldFor(q,id){
+  const val=profile[q.id]!==undefined?profile[q.id]:'';
+  if(q.type==='rupee')return `<div class="field"><span class="rupee">₹</span><input class="inp has-rupee" id="${id}" inputmode="numeric" placeholder="${q.ph}" value="${val}" oninput="liveRupee(this)"></div>`;
+  if(q.type==='textarea')return `<textarea class="inp" id="${id}" placeholder="${q.ph}">${val}</textarea>`;
+  return `<div class="field"><input class="inp" id="${id}" placeholder="${q.ph}" value="${val}"></div>`;
+}
+function renderQ(){
+  const q=QUESTIONS[qi];
+  $('pfill').style.width=((qi+1)/QUESTIONS.length*100)+'%';
+  $('plabel').textContent=(qi+1)+' of '+QUESTIONS.length;
+  let body;
+  if(q.type==='composite'){
+    body=q.subs.map(s=>{
+      const fid='qinput_'+s.id,cur=profile[s.id]!==undefined?profile[s.id]:'';
+      const inp=s.type==='rupee'
+        ? `<div class="field"><span class="rupee">₹</span><input class="inp has-rupee" id="${fid}" inputmode="numeric" placeholder="${s.ph}" value="${cur}" oninput="liveRupee(this)"></div>`
+        : `${chipRow(fid,s.chips,cur)}<div class="field"><input class="inp" id="${fid}" placeholder="${s.ph}" value="${cur}"></div>`;
+      return `<div class="sub-block"><div class="sub-label">${s.sublabel}${s.required?'':' <span style="color:var(--muted);font-weight:500;text-transform:none">· optional</span>'}</div>${inp}</div>`;
+    }).join('');
+  }else{
+    body=`${chipRow('qinput',q.chips,profile[q.id])}${fieldFor(q,'qinput')}${q.required?'':'<div class="optional-note">Optional — skip if it doesn\'t apply.</div>'}`;
+  }
+  $('qbody').innerHTML=`
+    <div class="q-kicker">${q.kicker}</div>
+    <h2 class="q-label">${q.label}</h2>
+    <p class="q-help">${q.help}</p>
+    <div class="q-scroll">${body}</div>
+    <div class="q-nav">
+      ${qi>0?'<button class="back-btn" onclick="prevQ()">← Back</button>':''}
+      <button class="btn" onclick="nextQ()">${qi===QUESTIONS.length-1?'See my plan →':'Next'}</button>
+    </div>`;
+  const el=$(q.type==='composite'?'qinput_'+q.subs[0].id:'qinput');
+  if(el){el.focus();el.addEventListener('keydown',e=>{if(e.key==='Enter'&&q.type!=='textarea'&&q.type!=='composite'){e.preventDefault();nextQ();}});}
+}
+function toggleChip(btn,inputId,text){
+  const el=$(inputId);if(!el)return;
+  const q=QUESTIONS[qi];
+  const isNone=t=>/^(none|nothing|no loans|^no$|just me)/i.test(t);
+  let parts=el.value.split(',').map(s=>s.trim()).filter(Boolean);
+  const at=parts.findIndex(p=>p.toLowerCase()===text.toLowerCase());
+  if(at>=0){parts.splice(at,1);}
+  else{
+    if(isNone(text)){parts=[text];}            // 'None' clears everything else
+    else{
+      parts=parts.filter(p=>!isNone(p));        // adding a real option clears 'None'
+      if(q&&q.exclusive){q.exclusive.forEach(g=>{const gl=g.map(x=>x.toLowerCase());if(gl.includes(text.toLowerCase()))parts=parts.filter(p=>!(gl.includes(p.toLowerCase())));});}
+    }
+    parts.push(text);
+  }
+  el.value=parts.join(', ');
+  syncChips(inputId,parts);
+  el.focus();
+}
+function syncChips(inputId,parts){
+  const lower=parts.map(p=>p.trim().toLowerCase());
+  document.querySelectorAll('.chip-opt').forEach(b=>{
+    const oc=b.getAttribute('onclick')||'';
+    if(oc.indexOf("'"+inputId+"'")>=0){
+      const m=oc.match(/toggleChip\(this,'[^']*','(.*)'\)/);
+      const t=m?m[1].replace(/\\'/g,"'"):'';
+      b.classList.toggle('on',lower.includes(t.toLowerCase()));
+    }
+  });
+}
+function liveRupee(el){let r=el.value.replace(/[^0-9]/g,'');el.value=r?Number(r).toLocaleString('en-IN'):'';}
+function prevQ(){if(qi>0){saveCurrent();qi--;renderQ();}}
+function saveCurrent(){
+  const q=QUESTIONS[qi];
+  if(q.type==='composite'){q.subs.forEach(s=>{const el=$('qinput_'+s.id);if(el)profile[s.id]=s.type==='rupee'?num(el.value):el.value.trim();});return;}
+  const el=$('qinput');if(!el)return;let v=el.value.trim();
+  if(q.type==='rupee')v=v?num(v):(q.required?v:0);
+  profile[q.id]=v;
+}
+function nextQ(){
+  const q=QUESTIONS[qi];
+  if(q.type==='composite'){
+    const rq=q.subs.find(s=>s.required);
+    if(rq){const el=$('qinput_'+rq.id);if(el&&el.value.trim()===''){el.style.borderColor='#c0392b';el.focus();toast('Paisa needs at least your near-term goal.');return;}}
+  }else{
+    const el=$('qinput');let v=el?el.value.trim():'';
+    if(q.required&&v===''){el.style.borderColor='#c0392b';el.focus();toast('This one Paisa really needs.');return;}
+  }
+  saveCurrent();
+  track('question_done',{step:qi+1});
+  if(qi<QUESTIONS.length-1){qi++;renderQ();}else{generate();}
+}
+
+/* ---------- loading + generate ---------- */
+function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+async function generate(){
+  show('loading');
+  const STEPS=[["Reading your whole situation…","Not your salary. Your situation."],["Spotting your biggest risk…","What happens if one thing breaks?"],["Sequencing what comes first…","Safety before growth. Always."],["Laying out every option…","The complete picture, in your terms."]];
+  let i=0;$('lstep').textContent=STEPS[0][0];$('lsub').textContent=STEPS[0][1];
+  const iv=setInterval(()=>{i=(i+1)%STEPS.length;$('lstep').style.opacity=0;setTimeout(()=>{$('lstep').textContent=STEPS[i][0];$('lsub').textContent=STEPS[i][1];$('lstep').style.opacity=1;},250);},1300);
+  let res;window._engine='demo';
+  try{
+    if(mode==='demo'){await wait(2700);res=buildPlan(profile);window._engine='demo';}
+    else if(mode==='llm'){res=await callLLM(profile);window._engine='AI';}
+    else{res=await callServerLLM(profile);window._engine='AI';}
+  }catch(e){toast('AI unavailable — using demo engine.');res=buildPlan(profile);window._engine='demo';}
+  clearInterval(iv);window._base=res;saveProfile(profile);track('plan_generated',{engine:window._engine});renderPlan(res);show('plan');$('plan').scrollTop=0;
+}
+
+/* ============================================================
+   COMPUTE HELPERS (deterministic)
+   ============================================================ */
+function moneyMap(p){
+  const income=num(p.monthly_income)+num(p.partner_income),rent=num(p.rent),home=num(p.money_sent_home),emi=emiOf(p);
+  const rs=realSpend(p);
+  const living=rs>0?rs:Math.max(9000,Math.round(income*0.22));
+  let free=income-rent-home-emi-living;if(free<0)free=0;
+  return {income,rent,home,emi,living,free,real:rs>0};
+}
+const OPT_NEAR=[
+  {n:"High-yield savings account",d:"instant access, modest interest",who:"money you might need any week",catch:"barely keeps up with inflation — fine for a buffer, not for growth"},
+  {n:"Liquid mutual funds",d:"a bit more, ~1-day exit",who:"emergency fund or 6–18 month goals",catch:"very low but not zero risk; returns aren't guaranteed"},
+  {n:"Short-term / sweep-in FD",d:"fixed and safe",who:"money with a known date",catch:"locked in; breaking early costs a little"}
+];
+const OPT_MED=[
+  {n:"Balanced / hybrid funds",d:"growth with a cushion",who:"3–5 year goals",catch:"can dip in bad years — needs patience"},
+  {n:"Large-cap index funds",d:"steady equity, low cost",who:"5+ year goals",catch:"swings with the market in the short run"},
+  {n:"Recurring deposit",d:"disciplined, guaranteed",who:"the cautious, with a fixed date",catch:"returns lag equity over long horizons"},
+  {n:"Short-duration debt funds",d:"beats a savings account, low risk",who:"2–4 year parking",catch:"small risk if interest rates jump"}
+];
+const OPT_LONG=[
+  {n:"Equity index funds (Nifty / Sensex)",d:"the long-run compounding engine",who:"7+ year wealth building",catch:"volatile year-to-year — only for money you won't touch"},
+  {n:"PPF / EPF",d:"tax-free, government-backed",who:"a safe long-term core",catch:"long lock-in (that's the point)"},
+  {n:"NPS",d:"retirement, extra tax break",who:"retirement specifically",catch:"locked till 60, part becomes an annuity"},
+  {n:"ELSS funds",d:"equity with 80C tax saving",who:"tax-saving plus growth",catch:"3-year lock-in, equity risk"}
+];
+function optionsByHorizon(p){
+  const out=[];
+  if((p.goal||'').trim())out.push({h:"Right now · 1–2 yrs",goal:p.goal,opts:OPT_NEAR});
+  if((p.goal_5yr||'').trim())out.push({h:"5 years",goal:p.goal_5yr,opts:OPT_MED});
+  if((p.goal_10yr||'').trim())out.push({h:"10 years",goal:p.goal_10yr,opts:OPT_LONG});
+  if(!out.length)out.push({h:"Right now",goal:p.goal||"your goal",opts:OPT_NEAR});
+  return out;
+}
+function protection(p){
+  const inv=(p.existing_insurance||'').toLowerCase();
+  const hasTerm=/term/.test(inv),hasHealth=/health/.test(inv),hasEmp=/employer/.test(inv);
+  const items=[];
+  items.push({t:"Term life insurance",have:hasTerm,d:hasTerm?"You've got this — good. Check the cover is ~10–15× your annual income.":hasDeps(p)?`People depend on your income — a pure term cover (≈₹1 crore is cheap at your age) keeps them safe if anything happens to you. The single most important gap.`:"Less urgent with no dependents, but cheapest to lock in young if anyone ever will."});
+  items.push({t:"Health insurance",have:hasHealth,d:hasHealth?"Covered — make sure the sum insured is ₹5–10L; medical costs rise fast.":hasEmp?"You rely on employer cover only — it vanishes the day you switch or lose the job. A personal ₹5–10L floater is worth looking at.":"One hospital stay can wipe out years of saving. A ₹5–10L floater is the first cover most people actually need."});
+  if(hasDeps(p))items.push({t:"Personal accident cover",have:false,d:"Cheap add-on that replaces income if an accident stops you working — matters most when others rely on you."});
+  return items;
+}
+function salaryStep(p){
+  if(!/high/i.test(p.future_salary||''))return null;
+  const inc=num(p.monthly_income);
+  return `You expect your income to rise. The trap is letting lifestyle rise with it. As you grow — say toward ${inr(inc*1.4)}+ — point the *first* part of every raise at the 10-year SIP, then enjoy the rest guilt-free. Automate the step-up so raises build wealth instead of just bigger bills.`;
+}
+function savingsIdle(p){
+  const w=(p.savings_where||'').toLowerCase(),s=num(p.savings_now);
+  if(s<50000)return null;
+  const someIdle=/saving|salary|cash/.test(w);
+  const anyInvested=/mutual|stock|ppf|epf|fd|fixed|invest|gold|bond/.test(w);
+  if(someIdle&&!anyInvested)return `Most of your ${inr(s)} is sitting in a savings/salary account earning very little, while inflation slowly eats its real value. A liquid fund or sweep-in FD keeps it just as reachable while it works harder — see the options below.`;
+  if(someIdle&&s>=100000)return `Some of your ${inr(s)} looks parked in low-interest savings. Anything beyond your emergency buffer could work harder in a liquid fund or FD without locking you in — options below.`;
+  return null;
+}
+
+/* ============================================================
+   DEMO ENGINE — diagnose → prescribe → complete picture
+   ============================================================ */
+function buildPlan(p){
+  const partnerInc=num(p.partner_income),household=partnerInc>0;
+  const income=num(p.monthly_income)+partnerInc,rent=num(p.rent),sent=num(p.money_sent_home),savings=num(p.savings_now);
+  const emi=emiOf(p),highInt=hasHighInterest(p),deps=hasDeps(p),sole=isSole(p)&&!household,disc=discretionary(p);
+  const goal=(p.goal||'your goal').trim(),goal5=(p.goal_5yr||'').trim(),goal10=(p.goal_10yr||'').trim();
+  const fear=(p.fear||'').trim(),name=(p.name||'').trim(),city=(p.city||'your city').trim(),lifestyle=(p.lifestyle||'').trim();
+  const invests=/mutual|sip|stock|ppf|epf|gold|crypto|fd|rd|real/.test((p.existing_investments||'').toLowerCase());
+  const mm=moneyMap(p);
+  const monthlyExpenses=rent+sent+emi+mm.living;
+  const emMonths=(sole||deps)?6:3;
+  const emTarget=emMonths*monthlyExpenses,emGap=Math.max(0,emTarget-savings),emFunded=emGap<=monthlyExpenses*0.5;
+  const hasTerm=/term/.test((p.existing_insurance||'').toLowerCase());
+
+  // ---- upgrades: idle cash, strengths-first assessment, spending feedback, emergency playbook ----
+  const idle_note=savingsIdle(p);
+  const spend_note=(disc>income*0.15&&goal)?`Right now ~${inr(disc)}/month goes to 'wants'. Redirecting even half — ${inr(Math.round(disc/2))}/month — into "${goalLabel(goal)}" would roughly double how fast you get there. Not about guilt; about choosing where it goes.`:null;
+  const working=[];
+  if(!highInt&&!hasDebt(p))working.push("You're debt-free — a head start most people don't have.");
+  else if(!highInt&&hasDebt(p))working.push("Your debt is the manageable kind — no high-interest credit-card trap.");
+  if(invests)working.push("You've already started investing — you're building, not starting from zero.");
+  if(savings>0&&emGap<=0)working.push(`You already hold a real buffer (${inr(savings)}) — your floor is built.`);
+  if(sent>0)working.push("You support family every month and still plan ahead — that's discipline.");
+  if(hasTerm)working.push("You're already insured on protection — smart and rare at your stage.");
+  if(lifestyle)working.push(`You know your non-negotiable (${lifestyle.length<28?lifestyle:'what you won\'t give up'}) — that self-awareness keeps plans alive.`);
+  if(!working.length)working.push("You sat down and looked at your money honestly — the hardest first step, and most people never take it.");
+  let fix;
+  if(deps&&!hasTerm)fix={what:"No term insurance, yet people depend on your income.",path:"Not a money problem — ₹1 crore cover is cheap. Sorting it is the highest-impact hour you'll spend this month."};
+  else if(highInt)fix={what:"High-interest debt is quietly the most expensive thing you own.",path:"Clear it before investing — a guaranteed return no fund can match."};
+  else if(disc>income*0.2)fix={what:`About ${inr(disc)}/month flows to 'wants' on autopilot.`,path:`Don't cut it all — redirecting even half meaningfully speeds up "${goal}".`};
+  else if(emGap>0)fix={what:"Your safety buffer is thinner than your situation needs.",path:"Top it up first — it's the floor everything else stands on."};
+  else fix={what:"Your money isn't pointed at anything specific yet.",path:"Sequencing it (below) is the whole fix — you have the income, just not the structure."};
+  const assessment={working:working.slice(0,4),fix};
+  const emergency_plan=[
+    `Tap your emergency fund first — that's exactly what it's for.${emGap>0?' (Which is why we build it now.)':''}`,
+    "Pause non-essential SIPs and goal-saving at once — they can wait; rent can't.",
+    deps?"Keep the essentials that protect others — rent, food, EMIs, insurance premiums. Never let term/health lapse.":"Strip to essentials — rent, food, EMIs. Everything else pauses.",
+    sole?"This is exactly why the 6-month buffer + term cover exist — they turn a catastrophe into a manageable few months.":"A 3-month buffer turns a job gap from a crisis into an inconvenience.",
+    "Do NOT sell long-term investments or take a high-interest loan to bridge — that turns a short shock into a long setback."
+  ];
+  // ---- spending verdict (only when real spending was entered) ----
+  let verdict=null;
+  if(mm.real){
+    const needs=rent+sent+emi+num(p.spend_essentials)+num(p.spend_transport);
+    const wants=num(p.spend_fun)+num(p.spend_shopping);
+    const pct=x=>income>0?Math.round(x/income*100):0;
+    const np=pct(needs),wp=pct(wants),sp=Math.max(0,100-np-wp);
+    let line;
+    if(sp>=20)line=`You're keeping ~${sp}% of your income — a genuinely healthy savings rate most people never reach. Protect it.`;
+    else if(wp>30)line=`Your 'wants' are ~${wp}% of income; a common healthy mark is ~30%. Not a scolding — just your clearest lever if you want to save more. You choose where it goes.`;
+    else if(np>60)line=`Essentials eat ~${np}% of your income, so there's little slack. The real fix is the big fixed costs (rent/EMI), not daily guilt.`;
+    else line=`Your split is roughly balanced. Nudging savings toward ~20% is the next gear.`;
+    // per-category red flags vs healthy bounds
+    const rentPct=pct(rent), foodPct=pct(num(p.spend_essentials)), transPct=pct(num(p.spend_transport));
+    const flags=[];
+    if(rent>0)flags.push({label:'Rent / housing',over:rentPct>30,note:rentPct>30?`${rentPct}% of income — over the ~30% comfort mark. Usually the single biggest fixable cost.`:`${rentPct}% — within the healthy ~30%. 👍`});
+    flags.push({label:'Lifestyle / wants',over:wp>30,note:wp>30?`${wp}% — over the ~30% mark. Your clearest lever, not a failing.`:`${wp}% — comfortably within ~30%.`});
+    if(transPct>15)flags.push({label:'Transport',over:true,note:`${transPct}% — a bit high; worth a look if it's avoidable.`});
+    if(foodPct>25)flags.push({label:'Food & bills',over:true,note:`${foodPct}% — on the higher side; some may be 'wants' hiding as 'needs'.`});
+    flags.push({label:'Going to savings',over:sp<20,note:sp<20?`${sp}% — below the ~20% target. Even +5% compounds hugely over time.`:`${sp}% — at or above the ~20% target. 👏`});
+    verdict={needs:np,wants:wp,save:sp,line,flags};
+  }
+
+  const diag={};
+  diag.biggest_risk=sole?`High. You're the only income for ${deps?'your family':'people who depend on you'}, with ${inr(savings)} saved — one job loss is catastrophic, not just inconvenient.`:deps?`Moderate. Others lean on you, though the load looks shared. The gap is a thin buffer (${inr(savings)}).`:emGap>0?`Low-to-moderate. No dependents, but ${inr(savings)} is under ${emMonths} months of cover.`:`Low. No dependents, no costly debt, and you already hold a real buffer.`;
+  diag.hardest_constraint=(rent+sent+emi)>income*0.5?`${inr(rent+sent+emi)} is locked before anything — only ${inr(mm.free)} is flexible.`:`Workable — about ${inr(mm.free)}/month is free after fixed costs and living.`;
+  diag.first_priority=mm.free<=0?`Cut and restructure — the numbers don't leave room to save yet.`:highInt?`Kill the high-interest debt while topping up the emergency fund.`:emGap>0?`Build the emergency fund to ${emMonths} months (${inr(emTarget)}).`:`You're past survival — move decisively toward ${goal}.`;
+  diag.must_wait=(emGap>0||highInt)?`The long-game SIP toward ${goal10?`"${goal10}"`:'wealth'} waits until the buffer and any costly debt are handled.`:`Nothing major — the foundation is set, compounding can start now.`;
+  diag.blind_spot=(deps&&!/term/.test((p.existing_insurance||'').toLowerCase()))?`No term insurance, but a whole income carries others — that's the real unguarded gap.`:highInt?`The high-interest debt is the most expensive thing in the budget.`:disc>income*0.2?`~${inr(disc)}/month to wants — the biggest lever you control.`:!goal10?`No 10-year picture — money drifts to wants instead of compounding.`:`Lifestyle creep quietly eating the gap you'd invest.`;
+
+  let buckets=[],remaining=Math.max(0,mm.free),pr=1;
+  if(mm.free<=0){
+    return {diagnosis:diag,
+      what_i_see:`${name?name+' — ':''}here's what Paisa sees, honestly. Your fixed costs (${inr(rent+sent+emi)}) already eat almost everything, so this month is about freeing up room, not investing.${disc>0?` You said ~${inr(disc)} goes to wants — that's where it hides.`:''} ${fear?`You told me "${fear}". The fastest way to quiet that is breathing space, not a SIP.`:`Even ${inr(4000)} of breathing room changes everything.`}`,
+      headline:(name?name+', ':'')+`let's be honest about the numbers.`,
+      summary:`In ${city}, fixed costs and living leave little to allocate right now. That's a signal to restructure, not a failure.`,
+      buckets:[{name:"Find ₹3,000–₹5,000 to cut",amount_monthly:0,priority:1,why:`${disc>0?`You named ~${inr(disc)} in wants — start there.`:'Review subscriptions, eating out, the EMI.'} Free cash has to exist before any plan works.`,calc:`Your fixed costs (${inr(rent+sent+emi)}) already use ${Math.round((rent+sent+emi)/Math.max(1,income)*100)}% of your ${inr(income)} — the target is to free up ~${inr(4000)}/mo`},
+        {name:`Then: tiny emergency start — aim ${inr(Math.max(1000,Math.round(income*0.05)))}`,amount_monthly:0,priority:2,why:`Once you free up room, begin a buffer with it. ${sole?'A whole family on one income':'Your situation'} makes ${inr(savings)} too thin to stop here — but it has to come from freed cash, not money you don't have.`,calc:`Start with ~5% of income (${inr(Math.max(1000,Math.round(income*0.05)))}/mo) the moment you free up room`}],
+      first_action:`This week, list every rupee leaving your account. The goal isn't to invest — it's to find the ${inr(4000)} hiding in your month.`,
+      not_yet:`No SIP or goal-saving yet. With no surplus, investing would mean borrowing to invest — the opposite of safe.`,
+      money_map:mm,protection:protection(p),options:optionsByHorizon(p),salary_step:salaryStep(p),
+      assessment,emergency_plan,idle_note,spend_note,verdict,
+      existing_note:invests?`You're already investing — pause fresh additions until there's breathing room, but don't sell in panic.`:null,
+      disclaimer:"Educational only. Paisa sequences your own money and lists the options available for each timeframe — it does not recommend specific funds, stocks or insurers, and is not investment advice."};
+  }
+  if(emGap>0){let em=Math.min(remaining*0.5,Math.ceil(emGap/12/500)*500);em=Math.max(em,Math.min(remaining*0.35,2000));em=Math.min(em,remaining);
+    buckets.push({name:`Emergency fund — ${emMonths} months`,amount_monthly:Math.round(em),priority:pr++,why:`${sole?'Sole earner — ':''}your ${inr(savings)} covers under ${emMonths} months. Closes the ${inr(emGap)} gap so a shock doesn't sink ${deps?'everyone':'you'}.`,calc:`${emMonths} months × ${inr(monthlyExpenses)} monthly costs = ${inr(emTarget)} needed − ${inr(savings)} saved = ${inr(emGap)} to fill`});remaining-=em;}
+  if(highInt&&remaining>0){const k=Math.min(remaining*0.5,Math.max(2000,Math.round(income*0.08)));
+    const kAmt=Math.round(Math.min(k,remaining));buckets.push({name:`Crush the high-interest debt`,amount_monthly:kAmt,priority:pr++,why:`That interest likely beats any investment return — paying it down is a guaranteed ~18–40% "return".`,calc:`${inr(kAmt)}/mo extra on top of your EMI — clears the costly debt faster, and the interest you save beats any SIP`});remaining-=Math.min(k,remaining);}
+  if(deps&&!/term/.test((p.existing_insurance||'').toLowerCase())&&remaining>800){const prem=Math.min(remaining,Math.max(700,Math.round(income*0.02)));
+    buckets.push({name:`Term insurance — protect ${(p.dependents||'').toLowerCase().includes('parent')?'your parents':'your dependents'}`,amount_monthly:Math.round(prem),priority:pr++,why:`People rely on your income. A pure term cover keeps them safe in the worst case. Category only — any insurer.`,calc:`≈${inr(prem)}/mo premium for roughly ₹1 crore of cover at your age`});remaining-=prem;}
+  if(remaining>500){const fdn=emFunded&&!highInt;const share=fdn?remaining*0.4:remaining*0.6;const a=Math.round(Math.min(share,remaining));
+    buckets.push({name:`${goalLabel(goal)}`,amount_monthly:a,priority:pr++,why:`Your near-term goal. Ring-fencing it monthly means "${goal}" gets a date, not a "someday".`,calc:`${Math.round(a/Math.max(1,mm.free)*100)}% of your ${inr(mm.free)} free cash, set aside in safe/liquid form`});remaining-=a;}
+  if(remaining>500&&goal5&&emFunded&&!highInt){const a=Math.round(Math.min(remaining*0.45,remaining));
+    buckets.push({name:`5-year goal — ${goalLabel(goal5)}`,amount_monthly:a,priority:pr++,why:`For "${goal5}". A balanced hybrid/index SIP fits this horizon. Category only.`,calc:`${Math.round(a/Math.max(1,mm.free)*100)}% of your free cash, for a ~5-year horizon`});remaining-=a;}
+  if(remaining>500&&emFunded&&!highInt){const aim=goal10?`your 10-year goal: "${goal10}"`:`long-term wealth`;
+    buckets.push({name:`10-year wealth SIP — index fund`,amount_monthly:Math.round(remaining),priority:pr++,why:`The long game — toward ${aim}. Buffer handled and debt-light, so this compounds. Low-cost index, not stock-picking. Category only.`,calc:`${inr(Math.round(remaining))}/mo = everything left after safety, debt & nearer goals`});remaining=0;}
+  else if(remaining>500){if(buckets[0])buckets[0].amount_monthly+=Math.round(remaining);remaining=0;}
+
+  const depPhrase=(p.dependents||'').toLowerCase().includes('parent')?'your parents':/wife|husband|partner|spouse/.test((p.dependents||'').toLowerCase())?'your partner':/kid|child/.test((p.dependents||'').toLowerCase())?'your kids':deps?'people who count on you':'';
+  let situation=sole?`you're carrying ${depPhrase||'your family'} on a single income`:deps?`others lean on you while you chase your own goals`:emGap>0?`you're earning steadily, but the safety net is thinner than it feels — ${inr(savings)} behind you`:`you've already got a real foundation under you`;
+  let unsaid=(deps&&!/term/.test((p.existing_insurance||'').toLowerCase()))?`you didn't flag term insurance — and that, not your savings rate, is the real gap when one income carries a family`:highInt?`the high-interest debt is quietly the most expensive thing you own`:disc>income*0.2?`about ${inr(disc)} a month slips into 'wants' with no plan — your single biggest lever`:emGap>0?`the risk isn't drama, it's drift — money that never gets pointed anywhere`:`the only thing between you and momentum is sequence, not income`;
+  const reassure=fear?`You told me "${fear}" — this whole plan is built to make that quieter, step by step.`:`Here's the order that gets you to ${goalLabel(goal)} without gambling.`;
+  let what_i_see=`${name?name+' — ':''}here's what Paisa sees. ${cap(situation)}. The thing you didn't say, but I'd flag: ${unsaid}. ${reassure}`;
+  if(lifestyle)what_i_see+=` And I kept room for ${lifestyle.length<46?lifestyle:'what you won\'t give up'} — a plan you keep beats a perfect one you quit.`;
+
+  const summary=`${household?`Together you and your partner bring in ${inr(income)}`:`You take home ${inr(income)}`} in ${city}${rent?`, ${inr(rent)} to rent`:''}${sent?` and ${inr(sent)} home`:''}. About ${inr(mm.free)} is ${household?'yours as a household':'yours'} to direct — sequenced so the ${emGap>0?'floor comes before the fun':'goals build real momentum'}.`;
+  const first_action=emGap>0?`Open a separate high-yield savings account this week and auto-transfer ${inr(buckets[0].amount_monthly)} on salary day. Out of sight, out of spend.`:highInt?`Make an extra payment toward the costliest debt this week, before it compounds again.`:`Auto-debit the "${goalLabel(goal)}" amount on salary day. Automation beats willpower every month.`;
+  const not_yet=(emGap>0||highInt)?`Hold the big index SIP. ${highInt?'Costly debt':'Your thin buffer'} comes first — it moves up the moment that's handled.`:`Don't chase hot stocks or crypto with this money. Boring on purpose — boring is what reaches "${goal}".`;
+
+  return {diagnosis:diag,what_i_see,headline:(name?name+', ':'')+`here's your complete picture.`,summary,buckets,first_action,not_yet,
+    money_map:mm,protection:protection(p),options:optionsByHorizon(p),salary_step:salaryStep(p),
+    assessment,emergency_plan,idle_note,spend_note,verdict,
+    existing_note:invests?`You're already investing — good. Fold those into the buckets below rather than starting a parallel pile; make sure they match the right time horizon.`:null,
+    disclaimer:"Educational only. Paisa sequences your own money and lists the options available for each timeframe — it does not recommend specific funds, stocks or insurers, and is not investment advice."};
+}
+function goalLabel(goal){const g=goal.toLowerCase(),yr=(goal.match(/20\d\d/)||[''])[0];
+  if(/shaadi|wedding|marriage/.test(g))return `Shaadi fund${yr?' — '+yr:''}`;
+  if(/europe|trip|travel|vacation|goa|abroad|japan/.test(g))return `${goal.length<22?goal:'Travel fund'}${yr&&!goal.includes(yr)?' — '+yr:''}`;
+  if(/home|house|flat|apartment|down ?payment|property/.test(g))return `Home down-payment${yr?' — '+yr:''}`;
+  if(/car|bike|vehicle/.test(g))return goal.length<22?goal:'Vehicle fund';
+  if(/education|study|college|sister|brother|child|kid/.test(g))return goal.length<26?goal:'Education fund';
+  if(/freedom|independent|fire|retire/.test(g))return 'Financial-freedom fund';
+  return goal.length<26?cap(goal):'Your goal fund';}
+
+/* ============================================================
+   REAL LLM MODE
+   ============================================================ */
+const SYSTEM_PROMPT=`You are Paisa — a sharp, warm Indian financial guide who thinks like a good CA that has just listened to one person's entire life. You are NOT a calculator and you do NOT give investment advice: you reflect the person back to themselves, sequence THEIR OWN money, and LIST the options available for each timeframe. You never tell them to buy a specific product.
+
+You receive a UserProfile JSON: name, city, monthly take-home, future_salary outlook, rent, dependents, money sent home, loans, savings, existing_investments, existing_insurance, spending_habits, lifestyle (what they won't give up), goal (near-term), goal_5yr, goal_10yr, fear.
+
+Work in TWO stages. Do Stage 1 fully before Stage 2.
+STAGE 1 — DIAGNOSE: biggest risk, hardest constraint, what comes first vs must wait, the blind spot they did NOT mention, and their emotion.
+THE WATERFALL: (1) emergency fund 3 months single / 6 if sole-earner or dependents; (2) kill high-interest debt before investing; (3) protect dependents with term + health insurance categories; (4) goal-saving by horizon — near-term in safe/liquid, 5yr in balanced/hybrid, 10yr in low-cost index; (5) long-term wealth SIP only after 1-3. Never put a lower rung first. If expenses exceed income, the plan is CUTTING — say so kindly. Never cut the one lifestyle thing they protect; use spending_habits as the lever instead.
+
+STAGE 2 — Build the COMPLETE PICTURE from the diagnosis. Return STRICT JSON, diagnosis first:
+{
+ "diagnosis":{"biggest_risk":string,"hardest_constraint":string,"first_priority":string,"must_wait":string,"blind_spot":string},
+ "plan":{
+   "what_i_see":string,   // THE HERO. 2-3 sentences, direct address. Reflect their situation, name the ONE thing they didn't say but a sharp CA would flag, tie to their fear. Specific, human, never generic.
+   "headline":string,
+   "summary":string,
+   "buckets":[{"name":string,"amount_monthly":number,"priority":number,"why":string}],
+   "protection":[{"t":string,"have":boolean,"d":string}],
+   "options":[{"h":string,"goal":string,"opts":[{"n":string,"d":string}]}],
+   "salary_step":string|null,
+   "existing_note":string|null,
+   "first_action":string,
+   "not_yet":string,
+   "disclaimer":"Educational only. Paisa sequences your own money and lists options per timeframe — it does not recommend specific products or give investment advice."
+ }
+}
+HARD RULES: 1) sum(buckets) <= income - rent - money_home - EMIs - a living buffer; never allocate money they don't have or 100% of free cash. 2) Every bucket "why" quotes something specific THEY said. 3) Name buckets specifically. 4) Acknowledge their fear; reassure, never shame. 5) Categories only in options/protection — never a fund, stock or insurer name. 6) Frame options as "available", never "you should". 7) Return ONLY the JSON, no markdown fences.`;
+
+async function callServerLLM(p){
+  const r=await fetch('/api/generatePlan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
+  if(!r.ok)throw new Error('server '+r.status);
+  const parsed=await r.json();
+  const plan=parsed.plan||parsed;plan.diagnosis=parsed.diagnosis||plan.diagnosis||null;
+  const demo=buildPlan(p);
+  ['money_map','options','protection','salary_step','assessment','emergency_plan','idle_note','spend_note','verdict'].forEach(k=>{if(plan[k]==null)plan[k]=demo[k];});
+  return plan;
+}
+async function callLLM(p){
+  const key=($('apiKey').value||'').trim();if(!key)throw new Error('no key — add one in Settings');
+  const u=JSON.stringify(p);let raw;
+  if(key.startsWith('sk-ant')){
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2200,system:SYSTEM_PROMPT,messages:[{role:'user',content:u}]})});
+    if(!r.ok)throw new Error('Claude '+r.status);const j=await r.json();raw=j.content[0].text;
+  }else{
+    const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'gpt-4o',response_format:{type:'json_object'},messages:[{role:'system',content:SYSTEM_PROMPT},{role:'user',content:u}]})});
+    if(!r.ok)throw new Error('OpenAI '+r.status);const j=await r.json();raw=j.choices[0].message.content;
+  }
+  raw=raw.replace(/\`\`\`json|\`\`\`/g,'').trim();
+  const parsed=JSON.parse(raw);const plan=parsed.plan||parsed;plan.diagnosis=parsed.diagnosis||plan.diagnosis||null;
+  const demo=buildPlan(p);
+  ['money_map','options','protection','salary_step','assessment','emergency_plan','idle_note','spend_note','verdict'].forEach(k=>{if(plan[k]==null)plan[k]=demo[k];});
+  return plan;
+}
+
+/* ============================================================
+   RENDER COMPLETE PICTURE
+   ============================================================ */
+function renderPlan(r,scenarioLabel,scenarioNote){
+  if(!r){renderPlan(buildPlan(profile));return;}
+  const buckets=Array.isArray(r.buckets)?r.buckets.slice().sort((a,b)=>(a.priority||9)-(b.priority||9)):[];
+  const total=buckets.reduce((a,b)=>a+(num(b.amount_monthly)||0),0);
+  const mm=r.money_map||moneyMap(profile);
+  const hero=r.what_i_see||r.summary||'';
+
+  const segs=[["Rent",mm.rent,"#b9b7d6"],["Home",mm.home,"#cdb8a0"],["EMIs",mm.emi,"#d6a9a9"],["Living",mm.living,"#cfcabe"],["Free to plan",mm.free,"#2f7a5b"]].filter(s=>s[1]>0);
+  const maxv=Math.max(...segs.map(s=>s[1]),1);
+  const mapRows=segs.map(s=>`<div class="map-row ${s[0]==='Free to plan'?'map-free':''}"><span class="map-name">${s[0]}</span><span class="map-bar" style="width:${Math.max(6,s[1]/maxv*150)}px;background:${s[2]}"></span><span class="map-amt">${inr(s[1])}</span></div>`).join('');
+  const bucketHtml=buckets.map(b=>`<div class="bucket"><div class="rail"></div><div class="pnum">${b.priority||''}</div><div class="bmain"><div class="bname">${esc(b.name||'Bucket')}</div><div class="bwhy">${esc(b.why||'')}</div>${b.calc?`<div class="bcalc">🧮 ${esc(b.calc)}</div>`:''}</div><div class="bamt">${inr(num(b.amount_monthly))}<small>/mo</small></div></div>`).join('');
+  const prot=(r.protection||protection(profile)).map(x=>`<div class="pcard"><div class="pt">${esc(x.t)} <span class="badge ${x.have?'have':'need'}">${x.have?'✓ have':'look at'}</span></div><div class="pd">${esc(x.d)}</div></div>`).join('');
+  const opts=(r.options||optionsByHorizon(profile)).map(g=>`<div class="opt-group"><div class="opt-h">${esc(g.h)} <small>· ${esc(g.goal||'')}</small></div>${g.opts.map(o=>`<div class="opt2"><div class="opt2-top"><span class="on">${esc(o.n)}</span><span class="od">${esc(o.d)}</span></div>${o.who?`<div class="opt2-meta"><b>Fits:</b> ${esc(o.who)}</div>`:''}${o.catch?`<div class="opt2-meta"><b>The catch:</b> ${esc(o.catch)}</div>`:''}</div>`).join('')}</div>`).join('');
+
+  const assess=r.assessment;
+  const assessHtml=assess?`<div class="sec"><div class="sec-title">Where you stand</div><div class="sec-sub">Honest — but you first.</div>
+    <div class="pcard"><div class="pt" style="color:var(--green)">✓ What's working for you</div><ul class="tick">${(assess.working||[]).map(w=>`<li>${esc(w)}</li>`).join('')}</ul></div>
+    <div class="pcard"><div class="pt" style="color:var(--amber)">The one thing to fix</div><div class="pd"><b>${esc(assess.fix.what)}</b><br>${esc(assess.fix.path)}</div></div>
+    ${r.idle_note?`<div class="pcard"><div class="pt">💤 Your idle money</div><div class="pd">${esc(r.idle_note)}</div></div>`:''}
+    ${r.spend_note?`<div class="pcard"><div class="pt">🎯 Your spending lever</div><div class="pd">${esc(r.spend_note)}</div></div>`:''}</div>`:'';
+  const emHtml=(r.emergency_plan&&r.emergency_plan.length)?`<div class="sec"><div class="sec-title">If something goes wrong</div><div class="sec-sub">Your emergency playbook — the exact order of moves, so panic never decides for you.</div><ol class="play">${r.emergency_plan.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></div>`:'';
+  const v=r.verdict;
+  const verdictHtml=v?`<div class="sec"><div class="sec-title">Is your spending healthy?</div><div class="sec-sub">Your real split, against a common rule of thumb (~50% needs / 30% wants / 20% saved). A guideline, not a verdict on you.</div>
+    <div class="split">${v.needs?`<span class="n" style="flex:${v.needs}">${v.needs>7?v.needs+'%':''}</span>`:''}${v.wants?`<span class="w" style="flex:${v.wants}">${v.wants>7?v.wants+'%':''}</span>`:''}${v.save?`<span class="s" style="flex:${v.save}">${v.save>7?v.save+'%':''}</span>`:''}</div>
+    <div class="split-key"><span><i style="background:#7c7ab0"></i>Needs ${v.needs}%</span><span><i style="background:#caa46a"></i>Wants ${v.wants}%</span><span><i style="background:#2f7a5b"></i>Saved ${v.save}%</span></div>
+    ${v.flags?`<div class="pcard">${v.flags.map(f=>`<div class="flag"><span class="fdot ${f.over?'bad':'ok'}"></span><div><b>${esc(f.label)}</b> — ${esc(f.note)}</div></div>`).join('')}</div>`:''}
+    <div class="pcard"><div class="pd">${esc(v.line)}</div></div></div>`:'';
+
+  const inv2=(profile.existing_investments||'').toLowerCase()+' '+(profile.existing_insurance||'').toLowerCase();
+  const using80c=/ppf|epf|elss|term|lic|insurance/.test(inv2);
+  const taxHtml=`<div class="sec"><div class="sec-title">Save on tax — what exists</div><div class="sec-sub">Legal ways to lower taxable income. Education, not advice — and mostly relevant under the old tax regime, so check which one fits you.</div>
+    ${using80c?`<div class="pcard"><div class="pd">Good news — things you already have${/ppf|epf/.test(inv2)?' (PPF/EPF)':''}${/term|insurance|lic/.test(inv2)?', and insurance premiums,':''} likely already count toward your 80C limit. Worth checking you're not leaving room unused.</div></div>`:''}
+    <div class="pcard"><div class="pt">Section 80C — up to ₹1.5L / year</div><div class="pd">ELSS funds, PPF, EPF, term-life premium, home-loan principal, kids' tuition — any mix up to ₹1.5 lakh reduces taxable income.</div></div>
+    <div class="pcard"><div class="pt">Section 80D — health insurance</div><div class="pd">Premiums for your own and your parents' health cover get a deduction on top of 80C.</div></div>
+    <div class="pcard"><div class="pt">Section 80CCD(1B) — NPS</div><div class="pd">An extra ₹50,000 deduction for NPS, over and above the 80C limit.</div></div>
+    <div class="menu-note">Categories that exist, not recommendations. Limits and rules change and depend on your tax regime — verify the current year's rules or ask a CA.</div></div>`;
+  const scnHtml=`<div class="sec"><div class="sec-title">Play with your future</div><div class="sec-sub">Tap to see how one life change reshapes your whole plan.</div><div class="scn-btns"><button onclick="scenario('raise')">💰 20% raise</button><button onclick="scenario('baby')">👶 New baby</button><button onclick="scenario('home')">🏠 Home loan</button><button onclick="scenario('halve')">📉 Income halves</button></div></div>`;
+
+  // progress tracking (compare to last saved plan)
+  let progressHtml='';
+  if(!scenarioLabel){
+    const prev=loadHist();
+    const now={date:Date.now(),free:mm.free,savings:num(profile.savings_now)};
+    if(prev&&prev.date&&(now.date-prev.date)>60000){
+      const days=Math.max(0,Math.round((now.date-prev.date)/86400000));
+      const dSav=now.savings-prev.savings,dFree=now.free-prev.free;
+      const when=days<=0?'earlier today':days+' day'+(days>1?'s':'')+' ago';
+      progressHtml=`<div class="sec"><div class="sec-title">Your progress</div><div class="sec-sub">Versus your last plan, ${when}.</div>
+        <div class="pcard"><div class="pd">Savings: ${inr(prev.savings)} → <b>${inr(now.savings)}</b> ${dSav>0?`<span style="color:var(--green)">▲ ${inr(dSav)} — real momentum 👏</span>`:dSav<0?`<span style="color:var(--amber)">▼ ${inr(-dSav)}</span>`:'(no change yet — that\'s okay)'}<br>Free to plan: ${inr(prev.free)} → <b>${inr(now.free)}</b></div></div></div>`;
+    }
+    saveHist(now);
+  }
+
+  let diagHtml='';
+  if(showDiag&&r.diagnosis){const d=r.diagnosis;diagHtml=`<details class="diag" open><summary>🧠 Paisa's private diagnosis</summary><div class="db">${['biggest_risk','hardest_constraint','first_priority','must_wait','blind_spot'].map(k=>d[k]?`<div><b>${k.replace(/_/g,' ')}:</b> ${esc(d[k])}</div>`:'').join('')}</div></details>`;}
+
+  $('planContent').innerHTML=`
+    ${scenarioLabel?`<div class="scn-banner"><div style="flex:1;min-width:0"><span>Scenario: <b>${esc(scenarioLabel)}</b></span>${scenarioNote?`<div class="scn-note">${esc(scenarioNote)}</div>`:''}</div><button onclick="showBase()">← Back</button></div>`:''}
+    <div class="see-hero"><div class="tag">✦ What Paisa sees</div><p>${esc(hero)}</p></div>
+    ${diagHtml}
+    <div class="sec"><div class="sec-title">Your money map</div><div class="sec-sub">Where ${inr(mm.income)} goes before you decide anything.${mm.real?'':' (Living costs estimated — add your spending in the questions for the real split.)'}</div>${mapRows}
+      <div class="map-formula">🧮 Free to plan = ${inr(mm.income)}${mm.rent?` − ${inr(mm.rent)} rent`:''}${mm.home?` − ${inr(mm.home)} home`:''}${mm.emi?` − ${inr(mm.emi)} EMIs`:''} − ${inr(mm.living)} living = <b>${inr(mm.free)}</b></div></div>
+    ${progressHtml}
+    ${verdictHtml}
+    ${assessHtml}
+    <div class="sec"><div class="sec-title">Your monthly plan</div><div class="sec-sub">Your free cash, sequenced — safety before growth.</div>${bucketHtml||'<div class="bwhy">—</div>'}
+      <div class="totals"><span>Allocated monthly</span><span><b>${inr(total)}</b> of ${inr(mm.free)} free</span></div></div>
+    <div class="sec"><div class="sec-title">Protection check</div><div class="sec-sub">The cover worth looking at — categories, never an insurer.</div>${prot}</div>
+    ${emHtml}
+    <div class="sec"><div class="sec-title">Know your options</div>
+      <div class="menu-note">The menu of where money like this can go, by timeframe — so you know what exists. This is education, not a recommendation: Paisa lists, you (and a SEBI-registered adviser, if you want) choose. Returns and rates are illustrative, vary, and are never guaranteed.</div>${opts}</div>
+    ${r.salary_step?`<div class="callout grow"><div class="ct">↗ As your income grows</div><p>${esc(r.salary_step)}</p></div>`:''}
+    ${r.existing_note?`<div class="pcard"><div class="pt">What you already hold</div><div class="pd">${esc(r.existing_note)}</div></div>`:''}
+    ${r.first_action?`<div class="callout first"><div class="ct">✓ Do this first</div><p>${esc(r.first_action)}</p></div>`:''}
+    ${r.not_yet?`<div class="callout notyet"><div class="ct">⏳ Not yet</div><p>${esc(r.not_yet)}</p></div>`:''}
+    ${taxHtml}
+    ${scenarioLabel?'':scnHtml}
+    <div class="disclaimer">${esc(r.disclaimer||'Educational only. Not investment advice.')}</div>
+    <div class="fb-cta" style="background:linear-gradient(140deg,#fff,#e7f3ed);border-color:#cfe7da"><div>Want Paisa to check in on your progress each month?</div><div style="display:flex;gap:8px"><input id="wlEmail" class="fbinp" type="email" placeholder="you@email.com" style="margin-bottom:0"><button class="btn" style="width:auto;padding:13px 18px" onclick="joinWaitlist()">Join</button></div><button class="btn secondary" style="margin-top:10px" onclick="calendarReminder()">📅 Or add a monthly reminder to your calendar</button></div>
+    <div class="fb-cta"><div>Did this feel written for you?</div><button class="btn" onclick="openFeedback()">Share 20-second feedback →</button></div>
+    <div class="plan-actions"><button class="btn secondary" onclick="start()">Start over</button><button class="btn secondary" onclick="copyPlan()">Copy</button><button class="btn" onclick="sharePaisa()">Share →</button></div>
+    <div class="fineprint">Generated by <b>${window._engine==='AI'?'Paisa AI':'demo engine'}</b> · <a onclick="openSheet()">change</a></div>`;
+  window._last=r;
+}
+function copyPlan(){const r=window._last;if(!r)return;let t=(r.what_i_see||'')+'\n\n';(r.buckets||[]).sort((a,b)=>(a.priority||9)-(b.priority||9)).forEach(b=>{t+=`${b.priority}. ${b.name} — ${inr(num(b.amount_monthly))}/mo\n   ${b.why}\n`});t+=`\n✓ First: ${r.first_action||''}\n⏳ Not yet: ${r.not_yet||''}\n\n${r.disclaimer||''}`;navigator.clipboard.writeText(t).then(()=>toast('Picture copied'),()=>toast('Copy failed'));}
+function showBase(){if(window._base)renderPlan(window._base);$('plan').scrollTop=0;}
+function scenario(type){
+  const p2=Object.assign({},profile),inc=num(profile.monthly_income);let label,note;
+  if(type==='raise'){p2.monthly_income=Math.round(inc*1.2);p2.future_salary='Significantly higher';label='💰 A 20% raise';note=`Your take-home rises 20% to ${inr(p2.monthly_income)}. Fixed costs stay the same, so almost the whole raise turns into free cash — Paisa channels most of it to your goals and the long-term SIP.`;}
+  else if(type==='baby'){const add=8000;if(num(profile.spend_essentials))p2.spend_essentials=num(profile.spend_essentials)+add;p2.dependents=(profile.dependents&&!/just me|^no/i.test(profile.dependents)?profile.dependents+', ':'')+'a newborn child';label='👶 A new baby';note=`A baby changes three things at once: ~${inr(add)}/mo more in essentials (food, healthcare, childcare), your emergency fund jumps from 3 to 6 months because someone now fully depends on you, and term insurance appears for the same reason. That's why free cash drops and the order shifts toward safety.`;}
+  else if(type==='home'){const emi=25000;p2.loans=(profile.loans?profile.loans+', ':'')+'home loan EMI '+emi;label='🏠 A new home loan (₹25k/mo)';note=`A ${inr(emi)}/mo EMI is now locked before anything else, so your free cash shrinks by that much. Paisa keeps the safety nets but slows the goals until the EMI feels comfortable.`;}
+  else if(type==='halve'){p2.monthly_income=Math.round(inc*0.5);label='📉 Income drops by half';note=`Your income falls to ${inr(p2.monthly_income)} while rent and bills stay fixed — so they now eat most of it. The plan flips from growing wealth to protecting essentials and stretching your buffer.`;}
+  track('scenario',{type:type});
+  renderPlan(buildPlan(p2),label,note);$('plan').scrollTop=0;
+}
+function joinWaitlist(){
+  const el=$('wlEmail');if(!el)return;const email=el.value.trim();
+  if(!/.+@.+\..+/.test(email)){toast('Enter a valid email 🙂');return;}
+  if(WEB3FORMS_KEY.startsWith('YOUR_')){toast('Thanks! (Owner: add your Web3Forms key to collect these.)');el.value='';return;}
+  fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({access_key:WEB3FORMS_KEY,subject:'Paisa monthly check-in signup',from_name:'Paisa waitlist',email,context:`${profile.name||'—'} · ${profile.city||''} · goal: ${profile.goal||'—'}`})})
+    .then(()=>{track('waitlist_joined');toast('You\'re on the list — Paisa will check in 💜');el.value='';}).catch(()=>toast('Try again in a sec.'));
+}
+function calendarReminder(){
+  track('reminder_set');
+  const url=(typeof location!=='undefined'?location.href:'').split('#')[0];
+  const dt=new Date(Date.now()+30*86400000);
+  const stamp=d=>d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Paisa//EN','BEGIN:VEVENT','UID:paisa-'+Date.now()+'@paisa','DTSTAMP:'+stamp(new Date()),'DTSTART:'+stamp(dt),'RRULE:FREQ=MONTHLY','SUMMARY:Paisa monthly money check-in','DESCRIPTION:Update your savings & spending and see your progress — '+url,'END:VEVENT','END:VCALENDAR'].join('\r\n');
+  try{
+    const blob=new Blob([ics],{type:'text/calendar'});const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='paisa-monthly-checkin.ics';document.body.appendChild(a);a.click();a.remove();
+    toast('Monthly reminder added — check your calendar 📅');
+  }catch(e){toast('Couldn\'t create reminder.');}
+}
+function sharePaisa(){
+  track('shared');
+  const url=(typeof location!=='undefined'?location.href:'').split('#')[0];
+  const text='Paisa built me a money plan that actually felt written for me — not a generic SIP calculator. Try it:';
+  if(navigator.share){navigator.share({title:'Paisa',text,url}).catch(()=>{});}
+  else{navigator.clipboard.writeText(text+' '+url).then(()=>toast('Link copied — share it!'),()=>toast('Copy failed'));}
+}
+
+/* ---------- settings ---------- */
+function openSheet(){$('sheetMask').classList.add('show');}
+function closeSheet(){showDiag=$('showDiag').checked;$('sheetMask').classList.remove('show');}
+function setMode(m){mode=m;$('optAI').classList.toggle('sel',m!=='demo');$('optDemo').classList.toggle('sel',m==='demo');}
+function detectProvider(){}
+/* show 'Welcome back' on the landing if a past plan exists */
+try{if(loadProfile()&&$('welcomeBack'))$('welcomeBack').style.display='block';}catch(e){}
+
+/* ---------- feedback (free, no backend — posts to Web3Forms, lands in your email) ---------- */
+const WEB3FORMS_KEY='YOUR_WEB3FORMS_ACCESS_KEY'; // get a free key in 10s at web3forms.com (just enter your email)
+let fbRating=0,fbUse='';
+function openFeedback(){$('fbMask').classList.add('show');}
+function closeFeedback(){$('fbMask').classList.remove('show');}
+function setStar(n){fbRating=n;document.querySelectorAll('#stars .star').forEach((s,i)=>s.classList.toggle('on',i<n));}
+function setUse(btn,v){fbUse=v;btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+async function submitFeedback(){
+  if(!fbRating){toast('Tap a star rating first 🙂');return;}
+  const text=$('fbText').value.trim(),who=$('fbWho').value.trim();
+  track('feedback',{rating:fbRating,would_use:fbUse||''});
+  const ctx=`${profile.name||'—'} · ${profile.city||'?'} · income ${inr(num(profile.monthly_income))} · goal: ${profile.goal||'—'}`;
+  if(WEB3FORMS_KEY.startsWith('YOUR_')){toast('Thanks! (Owner: add your Web3Forms key to collect these.)');closeFeedback();return;}
+  const payload={access_key:WEB3FORMS_KEY,subject:`Paisa feedback — ${fbRating}/5 from ${who||'a tester'}`,from_name:'Paisa tester',
+    rating:fbRating+' / 5',would_use:fbUse||'—',what_they_said:text||'—',who:who||'anonymous',context:ctx,botcheck:''};
+  try{
+    const r=await fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(payload)});
+    if(!r.ok)throw new Error('send failed');
+    toast('Thank you — Paisa got your feedback 💜');closeFeedback();
+    $('fbText').value='';$('fbWho').value='';fbRating=0;fbUse='';setStar(0);document.querySelectorAll('.seg button').forEach(b=>b.classList.remove('on'));
+  }catch(e){toast('Couldn\'t send — try again in a moment.');}
+}
+</script>
+<!-- Vercel Web Analytics (works once enabled in the Vercel dashboard) -->
+<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
