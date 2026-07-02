@@ -31,8 +31,21 @@ STAGE 2 — Build the COMPLETE PICTURE from the diagnosis. Return STRICT JSON, d
 HARD RULES: 1) sum(buckets) <= income - rent - money_home - EMIs - a living buffer; never allocate money they don't have or 100% of free cash. 2) Every bucket "why" quotes something specific THEY said. 3) Name buckets specifically. 4) "what_i_see" is the hero: 2-3 sentences, direct address, name the ONE thing they didn't say but a sharp CA would flag, tie to their fear. 5) Acknowledge their fear; reassure, never shame. 6) Categories only — never a fund, stock or insurer name. 7) Return ONLY the JSON, no markdown fences.`;
 
 module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') { res.status(405).json({ error: 'POST only' }); return; }
   const key = process.env.GEMINI_API_KEY;
+  // --- DIAGNOSTIC: open /api/generatePlan in a browser (GET) to see Google's exact response ---
+  if (req.method === 'GET') {
+    if (!key) { res.status(200).json({ diag: 'NO_KEY — GEMINI_API_KEY is not set in Vercel env vars' }); return; }
+    try {
+      const t = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        body: JSON.stringify({ contents: [{ parts: [{ text: 'Reply with OK' }] }] })
+      });
+      const body = await t.text();
+      res.status(200).json({ diag: 'RAN', model: MODEL, key_prefix: key.slice(0, 6), gemini_status: t.status, gemini_response: body.slice(0, 1200) });
+    } catch (e) { res.status(200).json({ diag: 'THREW', error: String(e && e.message || e) }); }
+    return;
+  }
+  if (req.method !== 'POST') { res.status(405).json({ error: 'POST only' }); return; }
   if (!key) { res.status(500).json({ error: 'GEMINI_API_KEY not set in Vercel environment variables' }); return; }
 
   let profile;
