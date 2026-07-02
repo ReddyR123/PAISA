@@ -20,7 +20,7 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: [{ role: 'user', parts: [{ text: JSON.stringify(profile) }] }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0.7, maxOutputTokens: 8192, thinkingConfig: { thinkingBudget: 0 } }
+        generationConfig: { responseMimeType: 'application/json', temperature: 0.7, maxOutputTokens: 8192,  thinkingConfig: { thinkingBudget: 0 } }
       })
     });
     if (!r.ok) { const d = await r.text(); res.status(502).json({ error: 'LLM ' + r.status, detail: d }); return; }
