@@ -5,7 +5,7 @@
 // If the model name ever 404s, swap MODEL below (Gemini model names change over time —
 // e.g. "gemini-2.0-flash" or check https://ai.google.dev/gemini-api/docs/models).
 
-const MODEL = 'gemini-1.5-flash';
+const MODEL = 'gemini-2.5-flash';
 
 const SYSTEM_PROMPT = `You are Paisa — a sharp, warm Indian financial guide who thinks like a good CA that has just listened to one person's entire life. You are NOT a calculator and you do NOT give investment advice: you reflect the person back to themselves, sequence THEIR OWN money, and LIST the options available for each timeframe. You never tell them to buy a specific product.
 
